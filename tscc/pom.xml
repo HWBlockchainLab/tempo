@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>tempo-tscc</artifactId>
+    <packaging>jar</packaging>
+
+    <parent>
+        <artifactId>tempo-extenral-executor</artifactId>
+        <groupId>org.hyperledger.tempo</groupId>
+        <version>1.0.0</version>
+    </parent>
+
+    <properties>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.influxdb</groupId>
+            <artifactId>influxdb-java</artifactId>
+            <version>2.23</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hyperledger.fabric-chaincode-java</groupId>
+            <artifactId>fabric-chaincode-shim</artifactId>
+            <version>2.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>5.3.23</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hyperledger.tempo</groupId>
+            <artifactId>tempo-ts-dal</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+</dependencies>
+
+<repositories>
+     <repository>
+         <id>gitpack</id>
+         <name>gitpack</name>
+         <url>https://jitpack.io</url>
+     </repository>
+ </repositories>
+
+
+</project>
