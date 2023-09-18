@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -euo pipefail
+
+CHAINCODE_METADATA_DIR="$2"
+
+LOG="/tmp/detect_$$.log"
+
+# use jq to extract the chaincode type from metadata.json and exit with
+
+echo -en "\n\nGetting chaincode type:\n" >> $LOG
+jq -r .type "$CHAINCODE_METADATA_DIR/metadata.json" | tr '[:upper:]' '[:lower:]' >> $LOG 2>&1
+
+if [ "$(jq -r .type "$CHAINCODE_METADATA_DIR/metadata.json" | tr '[:upper:]' '[:lower:]')" = "external" ]; then
+    echo -en "\nchaincode type is external\n" >> $LOG
+    exit 0
+fi
+
+echo -en "\nchaincode type is not external\n" >> $LOG
+exit 1
+
+exit 0

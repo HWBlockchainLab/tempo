@@ -1,0 +1,6 @@
+{
+  "address": "${EE_CC_SERVICE_NAME}:${PORT_NUMBER}",
+  "cc_image": "tempo/tempo-contract:1.0.0",
+  "dial_timeout": "10s",
+  "tls_required": false
+}

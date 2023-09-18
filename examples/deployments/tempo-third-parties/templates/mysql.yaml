@@ -1,0 +1,56 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: {{ .Values.mysql.service_name }}
+    labels:
+      name: {{ .Values.mysql.service_name }}
+      app:  {{ .Values.mysql.service_name }}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: {{ .Values.mysql.service_name }}
+    template:
+      metadata:
+        labels:
+          name: {{ .Values.mysql.service_name }}
+          app:  {{ .Values.mysql.service_name }}
+      spec:
+        containers:
+        - env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: password
+          - name: MYSQL_DATABASE
+            value: tempo
+          - name: MYSQL_USER
+            value: tempo
+          - name: MYSQL_PASSWORD
+            value: password
+          - name: APP_NAME
+            value: {{ .Values.mysql.service_name }}
+          image: {{ .Values.mysql.image_name }}
+          name: {{ .Values.mysql.service_name }}
+          ports:
+          - containerPort: 3306
+
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: {{ .Values.mysql.service_name }}
+    name: {{ .Values.mysql.service_name }}
+  spec:
+    ports:
+    - port: 3306
+      protocol: TCP
+      targetPort: 3306
+    selector:
+      app: {{ .Values.mysql.service_name }}
+    type: ClusterIP
+
+
+kind: List
+metadata: {}

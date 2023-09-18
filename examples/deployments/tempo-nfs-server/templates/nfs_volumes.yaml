@@ -1,0 +1,110 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: fabric-pv
+    labels:
+      name: fabric-pv
+  spec:
+    storageClassName: manual
+    capacity:
+      storage: {{ .Values.nfs.storage_space }}
+    accessModes:
+      - ReadWriteMany
+    persistentVolumeReclaimPolicy: Retain
+    mountOptions:
+      - {{ .Values.nfs.nfs_version }}
+    nfs:
+      server: {{ .Values.nfs.nfs_ip }}
+      path: "/exports/fabric/test-network/"
+      readOnly: false
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: fabric-pvc
+  spec:
+    storageClassName: manual
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: {{ .Values.nfs.storage_space }}
+    selector:
+      matchLabels:
+        name: fabric-pv
+
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: preprocessor-pv
+    labels:
+      name: preprocessor-pv
+  spec:
+    storageClassName: manual
+    capacity:
+      storage: {{ .Values.nfs.storage_space }}
+    accessModes:
+      - ReadWriteMany
+    persistentVolumeReclaimPolicy: Retain
+    mountOptions:
+      - {{ .Values.nfs.nfs_version }}
+    nfs:
+      server: {{ .Values.nfs.nfs_ip }}
+      path: "/exports/preprocessor_storage/"
+      readOnly: false
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: preprocessor-pvc
+  spec:
+    storageClassName: manual
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: {{ .Values.nfs.storage_space }}
+    selector:
+      matchLabels:
+        name: preprocessor-pv
+
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: scheduler-pv
+    labels:
+      name: scheduler-pv
+  spec:
+    storageClassName: manual
+    capacity:
+      storage: {{ .Values.nfs.storage_space }}
+    accessModes:
+      - ReadWriteMany
+    persistentVolumeReclaimPolicy: Retain
+    mountOptions:
+      - {{ .Values.nfs.nfs_version }}
+    nfs:
+      server: {{ .Values.nfs.nfs_ip }}
+      path: "/exports/scheduler_storage/"
+      readOnly: false
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: scheduler-pvc
+  spec:
+    storageClassName: manual
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: {{ .Values.nfs.storage_space }}
+    selector:
+      matchLabels:
+        name: scheduler-pv
+
+kind: List
+metadata: {}
+

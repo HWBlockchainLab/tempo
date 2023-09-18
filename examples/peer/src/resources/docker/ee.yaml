@@ -1,0 +1,212 @@
+apiVersion: v1
+items:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: ee-keys-${EE_CC_SERVICE_NAME}
+    type: Opaque
+    data:
+      ee.key: ${BASE_64_KEY}
+      ee.pem: ${BASE_64_PEM}
+
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${EE_CC_SERVICE_NAME}
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          name: ${EE_CC_SERVICE_NAME}
+      template:
+        metadata:
+          labels:
+            name: ${EE_CC_SERVICE_NAME}
+            type: external-executor
+        spec:
+          containers:
+            - name: ext-chaincode-cnt
+              image: "${EE_CC_IMAGE}"
+              imagePullPolicy: Never
+              env:
+                - name: EE_PACKAGE_ID
+                  value: "${EE_PACKAGE_ID}"
+                - name: EE_USER_NAME
+                  value: "${EE_USER_NAME}"
+                - name: EE_RELATED_PEER_GRPC_URL
+                  value: "${EE_RELATED_PEER_GRPC_URL}"
+                - name: EE_CERT_FILE
+                  value: "${EE_CERT_FILE}"
+                - name: EE_KEY_FILE
+                  value: "${EE_KEY_FILE}"
+                - name: EE_CHANNEL_ID
+                  value: "${CHANNEL_ID}"
+                - name: ROOT_ORG_TLSCA_CERT_FILE
+                  value: "${ROOT_ORG_TLSCA_CERT_FILE}"
+                - name: CORE_PEER_ORG_NAME
+                  value: "${CORE_PEER_ORG_NAME}"
+                - name: CORE_PEER_ID
+                  value: "${CORE_PEER_ID}"
+                - name: CORE_PEER_LOCALMSPID
+                  value: "${CORE_PEER_LOCALMSPID}"
+                - name: CORE_CHAINCODE_LOGGING_SHIM
+                  value: 'DEBUG'
+                - name: CORE_CHAINCODE_LOGGING_LEVEL
+                  value: 'DEBUG'
+                - name: INFLUX_HOST
+                  value: "localhost"
+                - name: INFLUX_PORT
+                  value: "8086"
+                - name: INFLUX_USERNAME
+                  value: "admin"
+                - name: INFLUX_PASSWORD
+                  value: "admin123456"
+                - name: INFLUX_IS_SSL
+                  value: "true"
+                - name: INFLUX_MAX_RETRY
+                  value: "1"
+                - name: MAX_RESPONSE_SIZE
+                  value: "104857600"
+                - name: BOOKMARK_PATH
+                  value: "/etc/bookmarks/bookmark.json"
+                - name: INFLUX_CERTIFICATE_BASE64
+                  value: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlGSlRDQ0F3MmdBd0lCQWdJQkFEQU5CZ2txaGtpRzl3MEJBUXNGQURBVU1SSXdFQVlEVlFRREV3bHNiMk5oDQpiR2h2YzNRd0hoY05Nakl3TnpFek1EZ3dNalExV2hjTk16SXdOekV3TURnd01qUTFXakFVTVJJd0VBWURWUVFEDQpFd2xzYjJOaGJHaHZjM1F3Z2dJaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQ0R3QXdnZ0lLQW9JQ0FRRGN6MjhYDQpEOEQyaFdaNE5pU0Foc3lDUzQ0SUJUNkJCZ3c2M0pLMDVlSXd0cFV2dFFKK016N3BvMyt3UTFsaXAxSlJJdE5MDQpjNUpTUHVWeDR5Uzhta0JaZHBRZFpPZXpVY0pML0hqanIxd3E4QzMxUkRIVGlMbUh4OEVYWm11MkZ6aSt3c01HDQpoU1g2c245K0dCMWJqbkdTc2N2RHdVTmc1M255bHpDTWhyL0tsREZIZmg2L3BMSDI5b1cwNzhrNkduMjIvTW5CDQpqRmkrT0YzcHZHdm1scDZ4ZFJuYXhwbFpBYVhqeVZOTHdoU2owWFBoMkJIMU1iUGZYYnNUWFVSV2IxQVEyYzI3DQp6QXZSNFRVcnpHRitzajJHSkJmWDBlb3NEL3gvaVBkakM0RE9YbjU1WWRqb1EweVRpVGN0UjNLZHphcTYxSmIrDQpQU0QweFZpY1FJNVZBQ2RWeGhqd1JraUpNT1VyNGRlakxpaDNBRVZLUWpibklVUmNna25Pd0M3TjhTR2tzamFKDQoyVlBQTXprckJsQTRjc3Vzc0JHS0p6aDJXSHVYNEpFcVdFSWhuQ2JGelNiVVVnMTdZaGtzejlDWWdpS2dxOFZzDQpxNnRNTEJVSkNnazd2TkZHY3RtY3JSNnptV3FnQ25ubXZqTGFEOU51cytZRldRR294UDNicjArVTNZMG5xc3c5DQorUVdOYlc2U2QrTy85aU9pb2FUUWEvajBxcUV1Wk1Wak9JSklsNEgvcE9qa0E4OHV4VXdwUXpURjFnNzFQeW1PDQpYYjgyK2p2VlJhWXNJWWYwU0ZtTGpjNVBTdDhTd0N5eUIzdWFHQ1BSRU1BdmhndVdYK1FtUy9JU0hVM0FWQXpXDQp5Kzc3MmhiK1BKSTlLNmpaYnN6dnNXcmNxK2F0eXFaQlRXY0wwd0lEQVFBQm80R0JNSDh3RGdZRFZSMFBBUUgvDQpCQVFEQWdPNE1CMEdBMVVkSlFRV01CUUdDQ3NHQVFVRkJ3TUJCZ2dyQmdFRkJRY0RBakFQQmdOVkhSTUJBZjhFDQpCVEFEQVFIL01CMEdBMVVkRGdRV0JCVHZmMHVZSjZlSzRWSlpTUTNQZU5WZkZzOXVTVEFlQmdOVkhSRUVGekFWDQpnZ2xzYjJOaGJHaHZjM1NDQW1OaGh3Ui9BQUFCTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElDQVFDT09IVVRsTjR1DQpySW4wUDVDMFRLN3ZQOCt5TkEvY1pxUk1UUTZ0QUdHVC9oM2xCMExhVU1Dbks0RDRDRm1sejluc3hneTJTcUx2DQoyT3B2b1VET243emp5SnB2QkNnZDlFVERTKzYzOXdSTWljcUpPYXVCajBZOWYzV1U2UmxsYkhFQmluTjdZSmFiDQo4UTIvMGdrZkZBRERSREdPUEZPWFkvTUExbzQ3b3huc2Vld2lpQjkyV25UeDVLWW94NnE1OG94WGxRNXdXcWVVDQpIbkRkMEN2OHNJOXhJSDFrUHRBR0JFS0pubmo0Mkl0Z0N4alRzT1Jhd3NjbGRPVktlSHJOS00zNkNHQmVTSHk3DQp1RHlYV09LUlhZWWNuYndXdE5JeGU4VDQ0WHM1Nm1JQ29YaHozQU10bHBlaTZDKy94a0lwRUw1cEo5ZXd4Mjg1DQpnN0hQd1VwVGpsSG9KYWhLSEY4RGl0Mk50UFAvQjlIQmkvMXJDMit2WWwzTXZlUmVRZzhqc0dpSVRnQ0dONzR3DQpTKytka3N1SEgzZmdDcTBCN1paaFBnSEJTYVdrWTdkM2cvMlVDcVVicTkyVEsyZmlWemI2ZWRpN2JtSVZtTTFzDQp6cU9iNnBVazFoUDd2MmJ5Kyt1RUhkVE9ORHdQWDFXOTRhaXR3ZlBIdy9qalBCZk9OZW8rbno5bHNKOUxreVlLDQppWmhQTVA0VlFYWG5kWFZyVDNaMjVlK1EyMXo4MlBRQUJyb2p4a0RJNndGYmhkMmQyeWljaTh2cGpTMzYrblQ2DQpFYTdPUzF2UXVwMElpeHhIUmFaRjZSK3VyRDU5bjZGRENWNDRoekNVbGRMd1ZxQ3J3RFl2M2VFN1NkaTRYbzhWDQpwMDkzVkl6WmtPWG9UYUVLejBQa0VpWXR1VUNTcTJrMkVnPT0NCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0NCg=="
+              volumeMounts:
+                - name: ee-keys
+                  mountPath: "/etc/ssl"
+                - name: fabric
+                  mountPath: "/fabric"
+                - name: ee-bookmarks-${EE_CC_SERVICE_NAME}
+                  mountPath: "/etc/bookmarks"
+            - name: influxdb
+              image: influxdb:1.8.6-alpine
+              imagePullPolicy: Never
+              ports:
+                - name: api
+                  containerPort: 8086
+                - name: rpc
+                  containerPort: 8088
+              env:
+                - name: INFLUXDB_HTTP_FLUX_ENABLED
+                  value: "true"
+                - name: INFLUXDB_HTTP_HTTPS_ENABLED
+                  value: "true"
+                - name: INFLUXDB_HTTP_HTTPS_CERTIFICATE
+                  value: "/etc/ssl/influxdb.pem"
+                - name: INFLUXDB_HTTP_HTTPS_PRIVATE_KEY
+                  value: "/etc/ssl/influxdb.key"
+              livenessProbe:
+                httpGet:
+                  path: "/ping"
+                  port: api
+                  scheme: "HTTPS"
+                initialDelaySeconds: 30
+                timeoutSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: "/ping"
+                  port: api
+                  scheme: "HTTPS"
+                initialDelaySeconds: 5
+                timeoutSeconds: 1
+              volumeMounts:
+                - name: influx-config
+                  mountPath: /etc/influxdb
+                - name: influxdb-persistance-${EE_CC_SERVICE_NAME}
+                  mountPath: /var/lib/influxdb
+                - name: influx-keys
+                  mountPath: "/etc/ssl"
+
+          volumes:
+            - name: ee-keys
+              secret:
+                secretName: ee-keys-${EE_CC_SERVICE_NAME}
+            - persistentVolumeClaim:
+                claimName: fabric-pvc
+              name: fabric
+            - emptyDir: { }
+              name: influxdb-persistance-${EE_CC_SERVICE_NAME}
+            - emptyDir: { }
+              name: ee-bookmarks-${EE_CC_SERVICE_NAME}
+            - name: influx-keys
+              secret:
+                secretName: influx-keys-${EE_CC_SERVICE_NAME}
+            - name: influx-config
+              configMap:
+                name: influxdb-config-${EE_CC_SERVICE_NAME}
+
+
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: ${EE_CC_SERVICE_NAME}
+      labels:
+        app: ${EE_CC_SERVICE_NAME}
+    spec:
+      selector:
+        name: ${EE_CC_SERVICE_NAME}
+      ports:
+        - protocol: TCP
+          port: 20002
+          targetPort: 20002
+
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: influxdb-config-${EE_CC_SERVICE_NAME}
+    data:
+      influxdb.conf: |+
+        reporting-disabled = false
+        bind-address = ":8088"
+  
+        [meta]
+          dir = "/var/lib/influxdb/meta"
+  
+        [data]
+          dir = "/var/lib/influxdb/data"
+          wal-dir = "/var/lib/influxdb/wal"
+  
+        [coordinator]
+  
+        [retention]
+  
+        [shard-precreation]
+  
+        [monitor]
+  
+        [subscriber]
+  
+        [http]
+  
+        # TODO: allow multiple graphite listeners
+  
+        [[graphite]]
+  
+        # TODO: allow multiple collectd listeners with templates
+  
+        [[collectd]]
+  
+        # TODO: allow multiple opentsdb listeners with templates
+  
+        [[opentsdb]]
+  
+        # TODO: allow multiple udp listeners with templates
+  
+        [[udp]]
+  
+        [continuous_queries]
+  
+        [logging]
+
+
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: influx-keys-${EE_CC_SERVICE_NAME}
+    type: Opaque
+    data:
+      influxdb.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQ0KTUlJSktRSUJBQUtDQWdFQTNNOXZGdy9BOW9WbWVEWWtnSWJNZ2t1T0NBVStnUVlNT3R5U3RPWGlNTGFWTDdVQw0KZmpNKzZhTi9zRU5aWXFkU1VTTFRTM09TVWo3bGNlTWt2SnBBV1hhVUhXVG5zMUhDUy94NDQ2OWNLdkF0OVVReA0KMDRpNWg4ZkJGMlpydGhjNHZzTERCb1VsK3JKL2ZoZ2RXNDV4a3JITHc4RkRZT2Q1OHBjd2pJYS95cFF4UjM0ZQ0KdjZTeDl2YUZ0Ty9KT2hwOXR2ekp3WXhZdmpoZDZieHI1cGFlc1hVWjJzYVpXUUdsNDhsVFM4SVVvOUZ6NGRnUg0KOVRHejMxMjdFMTFFVm05UUVObk51OHdMMGVFMUs4eGhmckk5aGlRWDE5SHFMQS84ZjRqM1l3dUF6bDUrZVdIWQ0KNkVOTWs0azNMVWR5bmMycXV0U1cvajBnOU1WWW5FQ09WUUFuVmNZWThFWklpVERsSytIWG95NG9kd0JGU2tJMg0KNXlGRVhJSkp6c0F1emZFaHBMSTJpZGxUenpNNUt3WlFPSExMckxBUmlpYzRkbGg3bCtDUktsaENJWndteGMwbQ0KMUZJTmUySVpMTS9RbUlJaW9LdkZiS3VyVEN3VkNRb0pPN3pSUm5MWm5LMGVzNWxxb0FwNTVyNHkyZy9UYnJQbQ0KQlZrQnFNVDkyNjlQbE4yTko2ck1QZmtGalcxdWtuZmp2L1lqb3FHazBHdjQ5S3FoTG1URll6aUNTSmVCLzZUbw0KNUFQUExzVk1LVU0weGRZTzlUOHBqbDIvTnZvNzFVV21MQ0dIOUVoWmk0M09UMHJmRXNBc3NnZDdtaGdqMFJEQQ0KTDRZTGxsL2tKa3Z5RWgxTndGUU0xc3Z1KzlvVy9qeVNQU3VvMlc3TTc3RnEzS3ZtcmNxbVFVMW5DOU1DQXdFQQ0KQVFLQ0FnRUFsa1dSYTlkcjBobTlQOGhSRlNzbjJQQ0VhNDd1RjY2Kytmd00xNUd2V3NtWFJBMWk4Zkg4T2RMcw0KWGsrbmNFMUE1empWSlg4MHNFWmZyaDhRYkU1cHhyaTlXamZHdTdIRGtpVHpQTGlsK0E3V3FCbE44NUVUK29VRw0KTXQrZ0pCOHZuaHM3MEo4aTFyZE5yc25JaVB1cTdWT1V3ZGN2L0szcnZ4NEhpMHRWRVEvRGJjMDJMZVJ1dlF6Tw0KdC9HTU43KzVtS1AyeG9LMkRsYWNDeXNSSDYrWHRsdGtTaEJvWWp1TjR6U3JQRjZMMzJUM0FWY2orWU5tejNlaA0Kamk4bUI5RGZZMmhtN0F5VWFyUmlsRGtXakx2T3hSQ2hMVjZOaUlra3BNTFk0WTM5amZTZkRBcDhMSzFJV3d2Qw0KQWsyaWdpUnFzWlZtWVFYRy9PMmxQVWx0MUFrenVwZGE5ZWZQYXFIVVA3R1B0NDNpbFh5ZWJsQkZTamY4VUpOTQ0KUVp5NkZkYUFIZVA3NEZpbm9RZS9kRk1WS1BmeTBXOENnWWticW56L01KYy9ZbENFeEdveDBaeFZnSVZUZXhBZQ0KVldaTmRxZHpBMDRqY3l0VUgxTjJjejJlUEQ0aXAwNi9wbDRmdkVTNHhpOE9sZDgxNGpCWGk2ZFkyUENrY09PeA0KZzEwcUdOQnJMV3oySVRuRnhrcUsvZ09ibHA2MUhhdzNMRFNSWGhoRlFwSjljZWQ4Rm1qQzBleUdCTWYwQURodg0KaVRSb3BmSXh0SDhESWNBaHdnYS9Ecm1GRWNGV005OTEweXhMZjdMR2ZKZFNaLzFDZzd5MmxEL05SbkxYdVJVSg0KSE91Y3p0aDk1VkRUOUxpZDF0SENibjZMQitRdkZIcngwR1Y1N2M1azJBcW1wT2VHYi9rQ2dnRUJBT25DaXJ2cg0KV25uVVVSWHYxcXluUUU3anBVTHB1MFNlRXc0aHZrc2NCM0xvRTVyYTVQR2xrL0RaSzd2eEZTZXNPWHpRWG03RQ0KL0QxaGFTRnRrcS9LWjUyNVNlNXRzZkc4NEErMk5HNThjNkIvTDBvRmdpdGs5V0FNWEVMYldFYS9aYW5PWVpnTA0KOVFicXdyUzFxaFVnLzhnVmc3V0xwY1g1U0F0OFpJaGFhRVdoNG9reTB6VEZOLy9HV1BhRTRiWmVVQUhDTEt6cw0KT0FKYk0xQ0RDVGh6THg1UllMVjJzVCtTNGwrellXMlp1OERrQzRTc0l2NG8xQWpTZjlTbEFlYitqc1FZNWZYeg0KaXlvcnhTbDVsTlZCcHlWTERobWcwUkFXbGZrT3A4OXZVQmNXYlhkVEJvQlJqdjBiR0ZTd1NSS3BkazBob1Q5SA0KRUkvVEMvWWpVNnIwMVdjQ2dnRUJBUEhSZlpHSzZLWHU2d2VhUW0wZHdpRFV5K0ZaQ2RSRU04dEZKMjJTdkJ5Mw0KdklTUjlUT1ZaeXFjQ1BFV0ovL2J1dGhjRjh6Sk5XdDZjT3grczlYUk5jb283ZFVlc0djQjZBWmE3UU1EYlA4Yg0Kd0FoL1dtcW12WnhBWVpZbHRjc2E5TE0zT2IyUjFSa3BCYkZCRnM3SUVNTE41endRZEd5VjRpT0M3Y0xJemtrdQ0KUlhzSEV4TWxCSWtwR01TWGFORTA5dzVRV085Nmp1RC9ZZUxEMDhtTjF4bDBiVHVMWUlITWYzcDVTZG9zNHB4eA0KM3JXd0YzSGRvTFMyZVVXRmFlZEpndmF3TTV5bUx4d2x6ME5PYjczdUJIaUtxUngwOFNQazl3MlA0R1F5MkpYcw0KckZYa0hObHJOSlRMRmVQNGlBUXQrU1YwcXVDc3Q5b2xWTVZOaGFzK1JyVUNnZ0VBSlUxUUNqRENYVktPSmV3Qg0KMjhkTXNjb040eUdkS3BQM0FuaEwvM3hYaS9TUXZGTlYyV0hNdTlCTDlFL0NTblJuTUEyb0pCRDNGMnhsOUZtaA0KNEw5eHpXOTE1c0JHZHdibTBsc0cvdUtKS1FGaXNITTBsR3dsNDgvVklTNFRaaWJBdUZvZ3BMeXp1d2pYVFRMNA0KRXlzUzVnRFk1YTJGSkpSazlNQkM0cWRhb0ZIMjdtSFg1a0hhYjh4ZEFlbXVnd1dGeXVJTGN3UzI0MWxlVk9pMA0KSGZmemV1a05mNmVUSFV2NUo4QmVPYmtnaHVWZEdTekc0THZ2S2dFOU9OZWorQktEQWJQZmJtSVF3UWYvREdGRQ0KYU10ek9yWkJaOEdMMnY5ZnEwQzFjcHFXc3poMisyV2FVZnV4ejUzMVFmNW5pcnpVRGZiaDNsRWV5WFNxSWZyOQ0KTFBpbzNRS0NBUUJPVFJ4UTFWN3g1QVFjcVJtYlJZaUhvd0FGanhROHRIems5QmFKUjNzNy9VN0F5cFpRUnE5cQ0KUDY0eGlwQVhMQ283UnM2NkUra0ZUVmRsYkwyRW5jTENIREN1MHNvaUFKOEY5OGxKTVlISXRVNmdNY1N3UmgrZA0KaWNkUG5CUmFtUGJsVlJ1UVE3bHg5VE9QcXRqY3lqR0xNcXNPYXZHWCs0eUhIUzBwNW1YTmtuc1RGRDViODUrZA0KWGo1VDRnY2h2dm5FbThYQWZibm9KeW1tQ096NkZjQ3gwRjVTYXBZc1VYQngwdlpUL0RiQW02cVd3RmRIR3BHZw0KRW5vQVJldjk1WExQdUV4dUMrMnpPcGI3WDFtVmNZM25EbGNtRE1QTWNLYUNzTFRqSFFlK3ZDMHRmcmpNdWdjRA0KcXlNQ2Q0WnJmQXR4MG01R1pBY0FUeGc4N3hZNlZlY0ZBb0lCQVFEYmpOQmVKZk9NV0pHL3VXaDc5ZGNITWw1Nw0KS0VuZlY3VGNWQUZWY2ZzeTB6L09BSzJ0VUU3Y0RTNWVqWFo4Uk9tWTJnMjl5MTVTYUp1REJ1aUhiQSsxdzRjcQ0KQVdaWkJjTlhOVjVWaVBLOWRxU25CaHpJL2d2MnlHRmwyTTVCNVpNUjd5TGpsZFpEV0kweitJZnRkc044dWpxcQ0KekpwNEUvUmt5R2dYZXlnU0FnQklESzRUbHAxV1BIeGh5MXNkRzdBT3c3MVRxaWVHekRzd242S29WNG1rMTh6YQ0KYnF2cTZWZVRVNmZlZFBmN1E1WmFQZDdxSUxqb2hTc2NNNU1XM3dpWkN0Z2lLd1I5WE9FbHZlK3c2dVlCbE9Gbw0KQVFMa2o1cUllSUhnVEI2dytSSHJrbWJMaHBvdW9PaU1kenVTMnB2ODFwV0lpem56WlFNcHNDSTdUNlpwDQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQ0K
+      influxdb.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlGSlRDQ0F3MmdBd0lCQWdJQkFEQU5CZ2txaGtpRzl3MEJBUXNGQURBVU1SSXdFQVlEVlFRREV3bHNiMk5oDQpiR2h2YzNRd0hoY05Nakl3TnpFek1EZ3dNalExV2hjTk16SXdOekV3TURnd01qUTFXakFVTVJJd0VBWURWUVFEDQpFd2xzYjJOaGJHaHZjM1F3Z2dJaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQ0R3QXdnZ0lLQW9JQ0FRRGN6MjhYDQpEOEQyaFdaNE5pU0Foc3lDUzQ0SUJUNkJCZ3c2M0pLMDVlSXd0cFV2dFFKK016N3BvMyt3UTFsaXAxSlJJdE5MDQpjNUpTUHVWeDR5Uzhta0JaZHBRZFpPZXpVY0pML0hqanIxd3E4QzMxUkRIVGlMbUh4OEVYWm11MkZ6aSt3c01HDQpoU1g2c245K0dCMWJqbkdTc2N2RHdVTmc1M255bHpDTWhyL0tsREZIZmg2L3BMSDI5b1cwNzhrNkduMjIvTW5CDQpqRmkrT0YzcHZHdm1scDZ4ZFJuYXhwbFpBYVhqeVZOTHdoU2owWFBoMkJIMU1iUGZYYnNUWFVSV2IxQVEyYzI3DQp6QXZSNFRVcnpHRitzajJHSkJmWDBlb3NEL3gvaVBkakM0RE9YbjU1WWRqb1EweVRpVGN0UjNLZHphcTYxSmIrDQpQU0QweFZpY1FJNVZBQ2RWeGhqd1JraUpNT1VyNGRlakxpaDNBRVZLUWpibklVUmNna25Pd0M3TjhTR2tzamFKDQoyVlBQTXprckJsQTRjc3Vzc0JHS0p6aDJXSHVYNEpFcVdFSWhuQ2JGelNiVVVnMTdZaGtzejlDWWdpS2dxOFZzDQpxNnRNTEJVSkNnazd2TkZHY3RtY3JSNnptV3FnQ25ubXZqTGFEOU51cytZRldRR294UDNicjArVTNZMG5xc3c5DQorUVdOYlc2U2QrTy85aU9pb2FUUWEvajBxcUV1Wk1Wak9JSklsNEgvcE9qa0E4OHV4VXdwUXpURjFnNzFQeW1PDQpYYjgyK2p2VlJhWXNJWWYwU0ZtTGpjNVBTdDhTd0N5eUIzdWFHQ1BSRU1BdmhndVdYK1FtUy9JU0hVM0FWQXpXDQp5Kzc3MmhiK1BKSTlLNmpaYnN6dnNXcmNxK2F0eXFaQlRXY0wwd0lEQVFBQm80R0JNSDh3RGdZRFZSMFBBUUgvDQpCQVFEQWdPNE1CMEdBMVVkSlFRV01CUUdDQ3NHQVFVRkJ3TUJCZ2dyQmdFRkJRY0RBakFQQmdOVkhSTUJBZjhFDQpCVEFEQVFIL01CMEdBMVVkRGdRV0JCVHZmMHVZSjZlSzRWSlpTUTNQZU5WZkZzOXVTVEFlQmdOVkhSRUVGekFWDQpnZ2xzYjJOaGJHaHZjM1NDQW1OaGh3Ui9BQUFCTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElDQVFDT09IVVRsTjR1DQpySW4wUDVDMFRLN3ZQOCt5TkEvY1pxUk1UUTZ0QUdHVC9oM2xCMExhVU1Dbks0RDRDRm1sejluc3hneTJTcUx2DQoyT3B2b1VET243emp5SnB2QkNnZDlFVERTKzYzOXdSTWljcUpPYXVCajBZOWYzV1U2UmxsYkhFQmluTjdZSmFiDQo4UTIvMGdrZkZBRERSREdPUEZPWFkvTUExbzQ3b3huc2Vld2lpQjkyV25UeDVLWW94NnE1OG94WGxRNXdXcWVVDQpIbkRkMEN2OHNJOXhJSDFrUHRBR0JFS0pubmo0Mkl0Z0N4alRzT1Jhd3NjbGRPVktlSHJOS00zNkNHQmVTSHk3DQp1RHlYV09LUlhZWWNuYndXdE5JeGU4VDQ0WHM1Nm1JQ29YaHozQU10bHBlaTZDKy94a0lwRUw1cEo5ZXd4Mjg1DQpnN0hQd1VwVGpsSG9KYWhLSEY4RGl0Mk50UFAvQjlIQmkvMXJDMit2WWwzTXZlUmVRZzhqc0dpSVRnQ0dONzR3DQpTKytka3N1SEgzZmdDcTBCN1paaFBnSEJTYVdrWTdkM2cvMlVDcVVicTkyVEsyZmlWemI2ZWRpN2JtSVZtTTFzDQp6cU9iNnBVazFoUDd2MmJ5Kyt1RUhkVE9ORHdQWDFXOTRhaXR3ZlBIdy9qalBCZk9OZW8rbno5bHNKOUxreVlLDQppWmhQTVA0VlFYWG5kWFZyVDNaMjVlK1EyMXo4MlBRQUJyb2p4a0RJNndGYmhkMmQyeWljaTh2cGpTMzYrblQ2DQpFYTdPUzF2UXVwMElpeHhIUmFaRjZSK3VyRDU5bjZGRENWNDRoekNVbGRMd1ZxQ3J3RFl2M2VFN1NkaTRYbzhWDQpwMDkzVkl6WmtPWG9UYUVLejBQa0VpWXR1VUNTcTJrMkVnPT0NCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0NCg==
+
+kind: List
+metadata: { }
