@@ -1,0 +1,4 @@
+apiVersion: v1
+name: tempo-nfs-server
+version: 1.0.0
+

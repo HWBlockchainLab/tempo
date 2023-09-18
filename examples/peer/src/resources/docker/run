@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -euo pipefail
+
+LOG="/tmp/run_$$.log"
+echo "********************* RUN *********************" >> $LOG
+
+BUILD_OUTPUT_DIR="$1"
+RUN_METADATA_DIR="$2"
+
+echo "BUILD_OUTPUT_DIR: $BUILD_OUTPUT_DIR" >> $LOG
+echo "RUN_METADATA_DIR: $RUN_METADATA_DIR" >> $LOG
+
+# setup the environment expected by the go chaincode shim
+export CORE_CHAINCODE_ID_NAME="$(jq -r .chaincode_id "$RUN_METADATA_DIR/chaincode.json")"
+export CORE_PEER_TLS_ENABLED="true"
+
+export CORE_PEER_MSPCONFIGPATH=${CORE_ADMIN_MSPCONFIGPATH}
+queryinstalled_result_json=`peer lifecycle chaincode queryinstalled -O json`
+export CHANNEL_ID=`echo $queryinstalled_result_json | jq -r --arg CORE_CHAINCODE_ID_NAME $CORE_CHAINCODE_ID_NAME '.installed_chaincodes[] | select(.package_id==$CORE_CHAINCODE_ID_NAME).references | keys[0]'`
+
+RELEASE_DIR="$BUILD_OUTPUT_DIR/../release"
+CC_NAME=`echo $CORE_CHAINCODE_ID_NAME | cut -d':' -f1`
+export EE_CC_SERVICE_NAME=`echo ee-${CHANNEL_ID}-${CORE_PEER_ID}-${CC_NAME} | tr '.' '-'`
+export EE_USER_NAME="${EE_CC_SERVICE_NAME}@${CORE_PEER_ORG_NAME}.example.com"
+export EE_RELATED_PEER_GRPC_URL="grpcs://${CORE_PEER_ADDRESS}"
+export EE_CERT_FILE="/etc/ssl/ee.pem"
+export EE_KEY_FILE="/etc/ssl/ee.key"
+export ROOT_ORG_TLSCA_CERT_FILE=`ls ${CORE_PEER_MSPCONFIGPATH}/tlscacerts/tlsca.${CORE_PEER_ORG_NAME}.example.com-cert.pem`
+export ROOT_CERT_PEM=`cat $CORE_PEER_MSPCONFIGPATH/cacerts/ca.${CORE_PEER_ORG_NAME}.example.com-cert.pem | tr -d '\n'`
+
+echo -en "\nStarting CA Enrollment Process\n" >> $LOG
+fabric-ca-client enroll -u http://${CA_ADMIN_USER}:${CA_ADMIN_SECRET}@${CA_URL}:${CA_PORT} >> $LOG 2>&1
+echo -en "\nFinished Enrollment of Admin\n" >> $LOG
+fabric-ca-client register -d --id.name ${EE_CC_SERVICE_NAME} --id.secret 123456 -u http://${CA_URL}:${CA_PORT} --id.type client --csr.hosts "${EE_CC_SERVICE_NAME}" --csr.cn "${EE_CC_SERVICE_NAME} --tls.enabled true --tls.certfiles ${ROOT_ORG_TLSCA_CERT_FILE}" >> $LOG 2>&1
+echo -en "\nRegistered new Identity\n" >> $LOG
+fabric-ca-client enroll -u http://${EE_CC_SERVICE_NAME}:123456@${CA_URL}:${CA_PORT}  --csr.hosts "${EE_CC_SERVICE_NAME}" -M ${CORE_CHAINCODE_ID_NAME}/msp/ --csr.cn "${EE_CC_SERVICE_NAME} --tls.enabled true --tls.certfiles ${ROOT_ORG_TLSCA_CERT_FILE}" >> $LOG 2>&1
+echo -en "\nFinished Enrollment of User\n" >> $LOG
+
+#replace placeholders
+echo "Substitute env vars {EE_CC_SERVICE_NAME}, {PORT_NUMBER} and {ROOT_CERT_PEM} in $BUILD_OUTPUT_DIR/connection.json by $EE_CC_SERVICE_NAME, $PORT_NUMBER and $ROOT_CERT_PEM" >> $LOG
+envsubst < $BUILD_OUTPUT_DIR/connection.json > $BUILD_OUTPUT_DIR/connection_tmp.json && mv $BUILD_OUTPUT_DIR/connection_tmp.json $BUILD_OUTPUT_DIR/connection.json
+
+echo "Copying $BUILD_OUTPUT_DIR/connection.json to $BUILD_OUTPUT_DIR/../release/chaincode/server..." >> $LOG
+cp $BUILD_OUTPUT_DIR/connection.json $RELEASE_DIR/chaincode/server
+cp -r $RUN_METADATA_DIR $RELEASE_DIR/chaincode/metadata
+export EE_CC_IMAGE="$(jq -r .cc_image "$RELEASE_DIR/chaincode/server/connection.json")"
+
+CERT_BASE64=`cat /opt/gopath/src/github.com/hyperledger/fabric/peer/.fabric-ca-client/${CORE_CHAINCODE_ID_NAME}/msp/signcerts/cert.pem | base64 | tr -d '\n'`
+echo "CERT_BASE64: $CERT_BASE64" >> $LOG 2>&1
+SECRET_FILE_NAME=`cd /opt/gopath/src/github.com/hyperledger/fabric/peer/.fabric-ca-client/${CORE_CHAINCODE_ID_NAME}/msp/keystore/ && ls -1t|head -n 1` >> $LOG 2>&1
+echo "SECRET_FILE_NAME: $SECRET_FILE_NAME" >> $LOG 2>&1
+SECRET_BASE64=`cat /opt/gopath/src/github.com/hyperledger/fabric/peer/.fabric-ca-client/${CORE_CHAINCODE_ID_NAME}/msp/keystore/${SECRET_FILE_NAME} | base64 | tr -d '\n'` >> $LOG 2>&1
+echo "SECRET_BASE64: $SECRET_BASE64" >> $LOG 2>&1
+
+echo -en "\n\nEnvironment variables list:\n" >> $LOG
+echo "---------------------------" >> $LOG
+printenv >> $LOG 2>&1
+
+
+echo "About to trigger External Executor service for package id: $CORE_CHAINCODE_ID_NAME and external executor chaincode service $EE_CC_SERVICE_NAME ..." >> $LOG
+python3 /ee_scripts/run_ee.py $CORE_CHAINCODE_ID_NAME $EE_CC_SERVICE_NAME $CERT_BASE64 $SECRET_BASE64
+
+#echo "About to sleep for 7200 seconds ..." >> $LOG
+#sleep 7200
+
+echo "About to exit run script ..." >> $LOG
+exit 0

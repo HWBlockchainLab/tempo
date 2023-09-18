@@ -1,0 +1,13 @@
+
+mysql:
+    service_name: tempo-mysql
+    image_name: mysql:8.0.31
+
+kafka:
+    service_name: tempo-kafka
+    image_name: confluentinc/cp-kafka:6.1.0
+
+zookeeper:
+    service_name: tempo-zookeeper
+    image_name: confluentinc/cp-zookeeper:6.1.0
+

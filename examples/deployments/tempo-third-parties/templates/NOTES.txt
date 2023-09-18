@@ -1,0 +1,6 @@
+
+This is a helm deployment for the following third party application:
+
+1. mySQL
+2. Kafka Broker
+3. Zookeeper

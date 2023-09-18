@@ -1,0 +1,44 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# ---------------------------------------------------------------------------
+# "OrdererOrgs" - Definition of organizations managing orderer nodes
+# ---------------------------------------------------------------------------
+OrdererOrgs:
+  # ---------------------------------------------------------------------------
+  # Orderer
+  # ---------------------------------------------------------------------------
+  # org1
+  - Name: OrdererOrg1
+    Domain: org1
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer1
+        SANS:
+          - orderer1-org1
+          - localhost
+          - fabric-orderer-0
+      - Hostname: orderer2
+        SANS:
+          - orderer2-org1
+          - localhost
+          - fabric-orderer-1
+
+  # org2
+  - Name: OrdererOrg2
+    Domain: org2
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer1
+        SANS:
+          - orderer1-org2
+          - localhost
+          - fabric-orderer-3
+      - Hostname: orderer2
+        SANS:
+          - orderer2-org2
+          - localhost
+          - fabric-orderer-4
+

@@ -1,0 +1,120 @@
+apiVersion: v1
+items:
+{{- range .Values.peer.peers }}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      name: {{ .service_name }}
+    name: {{ .service_name }}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: {{ .service_name }}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: {{ .service_name }}
+      spec:
+        serviceAccountName: {{ $.Values.service_account.name }}
+        containers:
+        - args:
+          - peer
+          - node
+          - start
+          env:
+          - name: DNS_NAME
+            value: {{ .core_peer_dns_name }}
+          - name: CORE_PEER_ADDRESSAUTODETECT
+            value: {{ .core_peer_addressautodetect | quote }}
+          - name: CORE_PEER_ADDRESS
+            value: {{ .core_peer_address }}
+          - name: CORE_PEER_ORG_NAME
+            value: {{ .core_peer_org_name }}
+          - name: PORT_NUMBER
+            value: {{ .core_peer_port_number | quote }}
+          - name: CA_ADMIN_USER
+            value: {{ .core_peer_ca_admin_user }}
+          - name: CA_ADMIN_SECRET
+            value: {{ .core_peer_ca_admin_secret }}
+          - name: CA_URL
+            value: {{ .core_peer_ca_url }}
+          - name: CA_PORT
+            value: {{ .core_peer_ca_port | quote }}
+          - name: CORE_PEER_GOSSIP_BOOTSTRAP
+            value: {{ .core_peer_gossip_bootstrap }}
+          - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+            value: {{ .core_peer_gossip_externalendpoint }}
+          - name: CORE_PEER_GOSSIP_ORGLEADER
+            value: {{ .core_peer_gossip_orgleader | quote }}
+          - name: CORE_PEER_GOSSIP_USELEADERELECTION
+            value: {{ .core_peer_gossip_useleaderelection | quote }}
+          - name: CORE_PEER_ID
+            value: {{ .core_peer_id }}
+          - name: CORE_PEER_LISTENADDRESS
+            value: {{ .core_peer_listenaddress }}
+          - name: CORE_PEER_MSPCONFIGPATH
+            value: {{ .core_peer_mspconfigpath }}
+          - name: CORE_ADMIN_MSPCONFIGPATH
+            value: {{ .core_admin_mspconfigpath }}
+          - name: CORE_PEER_LOCALMSPID
+            value: {{ .core_peer_localmspid }}
+          - name: CORE_PEER_PROFILE_ENABLED
+            value: {{ .core_peer_profile_enabled | quote }}
+          - name: CORE_PEER_TLS_CERT_FILE
+            value: {{ .core_peer_tls_cert_file }}
+          - name: CORE_PEER_TLS_ENABLED
+            value: {{ .core_peer_tls_enabled | quote }}
+          - name: CORE_PEER_TLS_KEY_FILE
+            value: {{ .core_peer_tls_key_file }}
+          - name: CORE_PEER_TLS_ROOTCERT_FILE
+            value: {{ .core_peer_tls_rootcert_file }}
+          - name: FABRIC_LOGGING_SPEC
+            value: {{ $.Values.fabric.fabric_logging_spec }}
+          - name: CORE_OPERATIONS_LISTENADDRESS
+            value: {{ $.Values.fabric.operations_listen_adrr }}:{{ .operation_port }}
+          image: {{ $.Values.peer.image_name }}
+          name: peer
+          ports:
+          - containerPort: 7051
+          volumeMounts:
+          - mountPath: /fabric
+            name: fabric
+          - name: peer-persistance
+            mountPath: /var/hyperledger/production/
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+        restartPolicy: Always
+        volumes:
+        - persistentVolumeClaim:
+            claimName: fabric-pvc
+          name: fabric
+        - emptyDir: {}
+          name: peer-persistance
+
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      name: {{ .service_name }}
+    name: {{ .service_name }}
+  spec:
+    type: ClusterIP
+    ports:
+    - name: {{ .service_port | quote }}
+      port: {{ .service_port }}
+      targetPort: {{ .service_port }}
+    - name: {{ .operation_port | quote }}
+      port: {{ .operation_port }}
+      targetPort: {{ .operation_port }}
+    selector:
+      name: {{ .service_name }}
+
+{{- end }}
+
+kind: List
+metadata: {}
+

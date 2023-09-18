@@ -1,0 +1,97 @@
+apiVersion: v1
+items:
+{{- range .Values.orderer.orderers }}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      name: {{ .service_name }}
+    name: {{ .service_name }}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: {{ .service_name }}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: {{ .service_name }}
+      spec:
+        hostname: orderer
+        containers:
+        - args:
+          - orderer
+          env:
+          - name: FABRIC_LOGGING_SPEC
+            value: {{ $.Values.fabric.fabric_logging_spec }}
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: {{ .orderer_general_cluster_clientcertificate }}
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: {{ .orderer_general_cluster_clientprivatekey }}
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: {{ .orderer_general_cluster_rootcas | quote }}
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: {{ .orderer_general_genesisfile }}
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: {{ .orderer_general_genesismethod }}
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: {{ .orderer_general_listenaddress }}
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: {{ .orderer_general_localmspdir }}
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: {{ .orderer_general_localmspid }}
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: {{ .orderer_general_tls_certificate }}
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: {{ .orderer_general_tls_enabled | quote}}
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: {{ .orderer_general_tls_privatekey }}
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: {{ .orderer_general_tls_rootcas | quote }}
+          - name: ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR
+            value: {{ .orderer_kafka_topic_replicationfactor | quote }}
+          - name: ORDERER_KAFKA_VERBOSE
+            value: {{ .orderer_kafka_verbose | quote }}
+          - name: ORDERER_GENERAL_LISTENPORT
+            value: {{ .service_port | quote }}
+          - name: ORDERER_OPERATIONS_LISTENADDRESS
+            value: {{ $.Values.fabric.operations_listen_adrr }}:{{ .operation_port }}
+          image: {{ $.Values.orderer.image_name }}
+          name: {{ .service_name }}
+          ports:
+          - containerPort: {{ .service_port }}
+          volumeMounts:
+          - mountPath: /fabric
+            name: fabric
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        restartPolicy: Always
+        volumes:
+        - persistentVolumeClaim:
+            claimName: fabric-pvc
+          name: fabric
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      name: {{ .service_name }}
+    name: {{ .service_name }}
+  spec:
+    type: ClusterIP
+    ports:
+    - name: {{ .service_port | quote }}
+      port: {{ .service_port }}
+      targetPort: {{ .service_port }}
+    - name: {{ .operation_port | quote }}
+      port: {{ .operation_port }}
+      targetPort: {{ .operation_port }}
+    selector:
+      name: {{ .service_name }}
+
+{{- end }}
+
+kind: List
+metadata: {}
+

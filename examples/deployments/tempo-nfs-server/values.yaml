@@ -1,0 +1,8 @@
+
+nfs:
+    nfs_ip: 10.247.8.8
+    service_name: tempo-nfs-server
+    image_name: tempo/tempo-fabric-nfs:1.0.0
+    mount_name: fabric-data
+    storage_space: 10Gi
+    nfs_version: nfsvers=3

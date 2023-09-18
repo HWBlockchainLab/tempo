@@ -1,0 +1,82 @@
+apiVersion: v1
+items:
+  {{- range .Values.ca.cas }}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      name: {{ .service_name }}
+    name: {{ .service_name }}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: {{ .service_name }}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: {{ .service_name }}
+      spec:
+        containers:
+          - command: ["sh"]
+            args: ["-c", "fabric-ca-server start -b admin:adminpw -d"]
+            env:
+              - name: FABRIC_LOGGING_SPEC
+                value: {{ $.Values.fabric.fabric_logging_spec }}
+              - name: FABRIC_CA_HOME
+                value: {{ .fabric_ca_home }}
+              - name: FABRIC_CA_SERVER_CA_NAME
+                value: {{ .fabric_ca_server_ca_name }}
+              - name: FABRIC_CA_SERVER_CA_CERTFILE
+                value: {{ .fabric_ca_server_ca_certfile }}
+              - name: FABRIC_CA_SERVER_CA_KEYFILE
+                value: {{ .fabric_ca_server_ca_keyfile }}
+              - name: FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS
+                value: {{ .fabric_ca_server_operations_listenaddress }}
+
+              # TLS
+              - name: FABRIC_CA_SERVER_TLS_ENABLED
+                value: {{ .fabric_ca_server_tls_enabled | quote }}
+              - name: FABRIC_CA_SERVER_TLS_CERTFILE
+                value: {{ .fabric_ca_server_tls_certfile }}
+              - name: FABRIC_CA_SERVER_TLS_KEYFILE
+                value: {{ .fabric_ca_server_tls_keyfile }}
+
+            image: {{ $.Values.ca.image_name }}
+            name: {{ .service_name }}
+            ports:
+              - containerPort: {{ .service_port }}
+            volumeMounts:
+              - mountPath: /fabric
+                name: fabric
+            workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+        restartPolicy: Always
+        volumes:
+        - persistentVolumeClaim:
+            claimName: fabric-pvc
+          name: fabric
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      name: {{ .service_name }}
+    name: {{ .service_name }}
+  spec:
+    type: ClusterIP
+    ports:
+      - name: {{ .service_port | quote }}
+        port: {{ .service_port }}
+        targetPort: 7054
+      - name: {{ .operation_port | quote }}
+        port: {{ .operation_port }}
+        targetPort: {{ .operation_port }}
+    selector:
+      name: {{ .service_name }}
+
+  {{- end }}
+
+kind: List
+metadata: {}
