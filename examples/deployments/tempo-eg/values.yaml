@@ -1,0 +1,4 @@
+
+eg:
+    service_name: tempo-eg
+    image_name: tempo/tempo-eg:1.0.0

@@ -1,0 +1,13 @@
+
+preprocessor:
+    service_name: preprocessor
+    image_name: tempo/preprocessor:1.0.0
+    channel_id: channel1
+
+
+scheduler:
+    service_name: scheduler
+    image_name: tempo/tempo-scheduler:1.0.0
+    channel_id: channel1
+
+

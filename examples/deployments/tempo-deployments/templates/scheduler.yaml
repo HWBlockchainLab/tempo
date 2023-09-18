@@ -1,0 +1,54 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: {{ .Values.scheduler.service_name }}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: {{ .Values.scheduler.service_name }}
+    template:
+      metadata:
+        labels:
+          name: {{ .Values.scheduler.service_name }}
+      spec:
+        containers:
+        - name: scheduler
+          image: {{ .Values.scheduler.image_name }}
+          env:
+          - name: CHANNEL_ID
+            value: {{ .Values.scheduler.channel_id }}
+          volumeMounts:
+          - mountPath: /fabric
+            name: fabric
+          - mountPath: /report-config
+            name: scheduler-storage
+          ports:
+            - containerPort: 8202
+        volumes:
+        - persistentVolumeClaim:
+            claimName: fabric-pvc
+          name: fabric
+        - persistentVolumeClaim:
+            claimName: scheduler-pvc
+          name: scheduler-storage
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: {{ .Values.scheduler.service_name }}
+    labels:
+      app: {{ .Values.scheduler.service_name }}
+  spec:
+    selector:
+      name: {{ .Values.scheduler.service_name }}
+    type: ClusterIP
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 9093
+
+kind: List
+metadata: {}

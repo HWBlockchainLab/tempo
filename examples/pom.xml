@@ -4,18 +4,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.hyperledger.tempo</groupId>
-    <artifactId>tempo-extenral-executor</artifactId>
+    <artifactId>tempo-examples</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0</version>
 
+    <parent>
+        <groupId>org.hyperledger.tempo</groupId>
+        <artifactId>tempo-extenral-executor</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
     <modules>
-        <module>ts-dal</module>
-        <module>tscc</module>
-        <module>chaincode-external-interfaces</module>
-	    <module>chaincode-external-executor</module>
-	    <module>dsl</module>
-        <module>examples</module>
+        <module>peer</module>
+        <module>battery-app--chaincode-manual</module>
+        <module>nfs</module>
+        <module>tools</module>
     </modules>
 
 </project>

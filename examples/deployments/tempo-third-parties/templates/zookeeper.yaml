@@ -1,0 +1,97 @@
+apiVersion: v1
+items:
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: {{ .Values.zookeeper.service_name }}-headless
+    labels:
+      app: {{ .Values.zookeeper.service_name }}
+  spec:
+    ports:
+      - port: 2888
+        name: server
+      - port: 3888
+        name: leader-election
+    clusterIP: None
+    selector:
+      app: {{ .Values.zookeeper.service_name }}
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: {{ .Values.zookeeper.service_name }}
+    labels:
+      app: {{ .Values.zookeeper.service_name }}
+  spec:
+    type: ClusterIP
+    ports:
+      - port: 2181
+        name: client
+    selector:
+      app: {{ .Values.zookeeper.service_name }}
+
+- apiVersion: apps/v1
+  kind: StatefulSet
+  metadata:
+    name: {{ .Values.zookeeper.service_name }}
+    labels:
+      app: {{ .Values.zookeeper.service_name }}
+  spec:
+    selector:
+      matchLabels:
+        app: {{ .Values.zookeeper.service_name }}
+    serviceName: {{ .Values.zookeeper.service_name }}-headless
+    replicas: 3
+    template:
+      metadata:
+        labels:
+          app: {{ .Values.zookeeper.service_name }}
+
+      spec:
+        containers:
+          - name: {{ .Values.zookeeper.service_name }}
+            image: {{ .Values.zookeeper.image_name }}
+            securityContext:
+              runAsUser: 0
+            ports:
+              - containerPort: 2181
+                name: client
+              - containerPort: 2888
+                name: server
+              - containerPort: 3888
+                name: leader-election
+            env:
+              - name : KAFKA_HEAP_OPTS
+                value: "-Xms512M -Xmx512M"
+              - name : ZOOKEEPER_TICK_TIME
+                value: "2000"
+              - name : ZOOKEEPER_SYNC_LIMIT
+                value: "5"
+              - name : ZOOKEEPER_INIT_LIMIT
+                value: "10"
+              - name : ZOOKEEPER_MAX_CLIENT_CNXNS
+                value: "60"
+              - name : ZOOKEEPER_AUTOPURGE_SNAP_RETAIN_COUNT
+                value: "3"
+              - name : ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL
+                value: "24"
+              - name: ZOOKEEPER_CLIENT_PORT
+                value: "2181"
+              - name : ZOOKEEPER_SERVERS
+                value: "{{ .Values.zookeeper.service_name }}-0.{{ .Values.zookeeper.service_name }}-headless.default.svc.cluster.local:2888:3888;{{ .Values.zookeeper.service_name }}-1.{{ .Values.zookeeper.service_name }}-headless.default.svc.cluster.local:2888:3888;{{ .Values.zookeeper.service_name }}-2.{{ .Values.zookeeper.service_name }}-headless.default.svc.cluster.local:2888:3888"
+              - name: ZOOKEEPER_SERVER_ID
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+            command:
+              - "bash"
+              - "-c"
+              - |
+                ZK_FIX_HOST_REGEX="s/${HOSTNAME}\.[^:]*:/0.0.0.0:/g"
+                ZOOKEEPER_SERVER_ID=$((${HOSTNAME##*-}+1)) \
+                ZOOKEEPER_SERVERS=`echo $ZOOKEEPER_SERVERS | sed -e "$ZK_FIX_HOST_REGEX"` \
+                /etc/confluent/docker/run
+
+kind: List
+metadata: {}

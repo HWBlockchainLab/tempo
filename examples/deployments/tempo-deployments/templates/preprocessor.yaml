@@ -1,0 +1,51 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: {{ .Values.preprocessor.service_name }}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: {{ .Values.preprocessor.service_name }}
+    template:
+      metadata:
+        labels:
+          name: {{ .Values.preprocessor.service_name }}
+      spec:
+        containers:
+        - name: preprocessor
+          image: {{ .Values.preprocessor.image_name }}
+          env:
+          - name: CHANNEL_ID
+            value: {{ .Values.preprocessor.channel_id }}
+          volumeMounts:
+          - mountPath: /fabric
+            name: fabric
+          - mountPath: /preprocessor
+            name: preprocessor
+        volumes:
+        - persistentVolumeClaim:
+            claimName: fabric-pvc
+          name: fabric
+        - persistentVolumeClaim:
+            claimName: preprocessor-pvc
+          name: preprocessor
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: {{ .Values.preprocessor.service_name }}
+    labels:
+      app: {{ .Values.preprocessor.service_name }}
+  spec:
+    selector:
+      name: {{ .Values.preprocessor.service_name }}
+    type: ClusterIP
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 9093
+kind: List
+metadata: {}

@@ -1,0 +1,285 @@
+
+fabric:
+    fabric_logging_spec: info
+    operations_listen_adrr: 0.0.0.0
+
+service_account:
+    name: tempo-ee-account
+    namespace: default
+
+cli:
+    service_name: fabric-cli
+    image_name: tempo/tempo-fabric-tools:1.0.0
+
+    core_peer_address: peer0-org1:7051
+    core_peer_id: cli
+    core_peer_localmspid: Org1MSP
+    core_peer_mspconfigpath: /fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+    core_peer_tls_cert_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.crt
+    core_peer_tls_enabled: true
+    core_peer_tls_key_file: /fabric/organizations/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.key
+    core_peer_tls_rootcert_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+    gopath: /opt/gopath
+
+ca:
+    image_name: hyperledger/fabric-ca:1.5.3
+
+    cas:
+        ###############
+        # ORG 1
+        ###############
+        ca0:
+            service_name: ca-org1
+            fabric_ca_home: /etc/hyperledger/fabric-ca-server
+            fabric_ca_server_ca_name: ca.org1
+            fabric_ca_server_ca_certfile: /fabric/organizations/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem
+            fabric_ca_server_ca_keyfile: /fabric/organizations/peerOrganizations/org1.example.com/ca/priv_sk
+            fabric_ca_server_tls_enabled: false
+            fabric_ca_server_tls_certfile: /fabric/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+            fabric_ca_server_tls_keyfile: /fabric/organizations/peerOrganizations/org1.example.com/tlsca/priv_sk
+            fabric_ca_server_operations_listenaddress: 0.0.0.0:20054
+
+            service_port: 20055
+            operation_port: 20054
+
+
+        ###############
+        # ORG 2
+        ###############
+        ca1:
+            service_name: ca-org2
+            fabric_ca_home: /etc/hyperledger/fabric-ca-server
+            fabric_ca_server_ca_name: ca.org2
+            fabric_ca_server_ca_certfile: /fabric/organizations/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem
+            fabric_ca_server_ca_keyfile: /fabric/organizations/peerOrganizations/org2.example.com/ca/priv_sk
+            fabric_ca_server_tls_enabled: false
+            fabric_ca_server_tls_certfile: /fabric/organizations/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
+            fabric_ca_server_tls_keyfile: /fabric/organizations/peerOrganizations/org2.example.com/tlsca/priv_sk
+            fabric_ca_server_operations_listenaddress: 0.0.0.0:20064
+
+            service_port: 20065
+            operation_port: 20064
+
+orderer:
+    image_name: hyperledger/fabric-orderer:2.2.0
+
+    orderers:
+        ###############
+        # ORG 1
+        ###############
+        orderer0:
+            service_name: orderer1-org1
+            orderer_general_cluster_clientcertificate: /fabric/organizations/ordererOrganizations/org1/orderers/orderer1.org1/tls/server.crt
+            orderer_general_cluster_clientprivatekey: /fabric/organizations/ordererOrganizations/org1/orderers/orderer1.org1/tls/server.key
+            orderer_general_cluster_rootcas: [/fabric/organizations/ordererOrganizations/org1/orderers/orderer1.org1/tls/ca.crt]
+            orderer_general_genesisfile: /fabric/system-genesis-block/genesis.block
+            orderer_general_genesismethod: file
+            orderer_general_listenaddress: 0.0.0.0
+            orderer_general_localmspdir: /fabric/organizations/ordererOrganizations/org1/orderers/orderer1.org1/msp
+            orderer_general_localmspid: OrdererOrg1MSP
+            orderer_general_tls_certificate: /fabric/organizations/ordererOrganizations/org1/orderers/orderer1.org1/tls/server.crt
+            orderer_general_tls_enabled: true
+            orderer_general_tls_privatekey: /fabric/organizations/ordererOrganizations/org1/orderers/orderer1.org1/tls/server.key
+            orderer_general_tls_rootcas: [/fabric/organizations/ordererOrganizations/org1/orderers/orderer1.org1/tls/ca.crt]
+            orderer_kafka_topic_replicationfactor: 1
+            orderer_kafka_verbose: true
+
+            service_port: 7050
+            operation_port: 9446
+
+        orderer1:
+            service_name: orderer2-org1
+
+            orderer_general_cluster_clientcertificate: /fabric/organizations/ordererOrganizations/org1/orderers/orderer2.org1/tls/server.crt
+            orderer_general_cluster_clientprivatekey: /fabric/organizations/ordererOrganizations/org1/orderers/orderer2.org1/tls/server.key
+            orderer_general_cluster_rootcas: [/fabric/organizations/ordererOrganizations/org1/orderers/orderer2.org1/tls/ca.crt]
+            orderer_general_genesisfile: /fabric/system-genesis-block/genesis.block
+            orderer_general_genesismethod: file
+            orderer_general_listenaddress: 0.0.0.0
+            orderer_general_localmspdir: /fabric/organizations/ordererOrganizations/org1/orderers/orderer2.org1/msp
+            orderer_general_localmspid: OrdererOrg1MSP
+            orderer_general_tls_certificate: /fabric/organizations/ordererOrganizations/org1/orderers/orderer2.org1/tls/server.crt
+            orderer_general_tls_enabled: true
+            orderer_general_tls_privatekey: /fabric/organizations/ordererOrganizations/org1/orderers/orderer2.org1/tls/server.key
+            orderer_general_tls_rootcas: [/fabric/organizations/ordererOrganizations/org1/orderers/orderer2.org1/tls/ca.crt]
+            orderer_kafka_topic_replicationfactor: 1
+            orderer_kafka_verbose: true
+
+            service_port: 7060
+            operation_port: 9456
+
+        ###############
+        # ORG 2
+        ###############
+        orderer3:
+            service_name: orderer1-org2
+
+            orderer_general_cluster_clientcertificate: /fabric/organizations/ordererOrganizations/org2/orderers/orderer1.org2/tls/server.crt
+            orderer_general_cluster_clientprivatekey: /fabric/organizations/ordererOrganizations/org2/orderers/orderer1.org2/tls/server.key
+            orderer_general_cluster_rootcas: [ /fabric/organizations/ordererOrganizations/org2/orderers/orderer1.org2/tls/ca.crt ]
+            orderer_general_genesisfile: /fabric/system-genesis-block/genesis.block
+            orderer_general_genesismethod: file
+            orderer_general_listenaddress: 0.0.0.0
+            orderer_general_localmspdir: /fabric/organizations/ordererOrganizations/org2/orderers/orderer1.org2/msp
+            orderer_general_localmspid: OrdererOrg2MSP
+            orderer_general_tls_certificate: /fabric/organizations/ordererOrganizations/org2/orderers/orderer1.org2/tls/server.crt
+            orderer_general_tls_enabled: true
+            orderer_general_tls_privatekey: /fabric/organizations/ordererOrganizations/org2/orderers/orderer1.org2/tls/server.key
+            orderer_general_tls_rootcas: [ /fabric/organizations/ordererOrganizations/org2/orderers/orderer1.org2/tls/ca.crt ]
+            orderer_kafka_topic_replicationfactor: 1
+            orderer_kafka_verbose: true
+
+            service_port: 7080
+            operation_port: 9466
+
+        orderer4:
+            service_name: orderer2-org2
+
+            orderer_general_cluster_clientcertificate: /fabric/organizations/ordererOrganizations/org2/orderers/orderer2.org2/tls/server.crt
+            orderer_general_cluster_clientprivatekey: /fabric/organizations/ordererOrganizations/org2/orderers/orderer2.org2/tls/server.key
+            orderer_general_cluster_rootcas: [/fabric/organizations/ordererOrganizations/org2/orderers/orderer2.org2/tls/ca.crt]
+            orderer_general_genesisfile: /fabric/system-genesis-block/genesis.block
+            orderer_general_genesismethod: file
+            orderer_general_listenaddress: 0.0.0.0
+            orderer_general_localmspdir: /fabric/organizations/ordererOrganizations/org2/orderers/orderer2.org2/msp
+            orderer_general_localmspid: OrdererOrg2MSP
+            orderer_general_tls_certificate: /fabric/organizations/ordererOrganizations/org2/orderers/orderer2.org2/tls/server.crt
+            orderer_general_tls_enabled: true
+            orderer_general_tls_privatekey: /fabric/organizations/ordererOrganizations/org2/orderers/orderer2.org2/tls/server.key
+            orderer_general_tls_rootcas: [/fabric/organizations/ordererOrganizations/org2/orderers/orderer2.org2/tls/ca.crt]
+            orderer_kafka_topic_replicationfactor: 1
+            orderer_kafka_verbose: true
+
+            service_port: 7090
+            operation_port: 9476
+
+
+peer:
+    image_name: tempo/tempo-fabric-peer:1.0.0
+
+    peers:
+        ###############
+        # ORG 1
+        ###############
+        peer0org1:
+            service_name: peer0-org1
+
+            service_port: 7051
+            operation_port: 9486
+
+            core_peer_addressautodetect: true
+            core_peer_org_name: org1
+            core_peer_address: peer0-org1:7051
+            core_peer_dns_name: ext-chaincode-org1
+            core_peer_port_number: 20002
+            core_peer_ca_admin_user: admin
+            core_peer_ca_admin_secret: adminpw
+            core_peer_ca_url: ca-org1
+            core_peer_ca_port: 20055
+            core_peer_gossip_bootstrap: peer1-org1:8051
+            core_peer_gossip_externalendpoint: peer0-org1:7051
+            core_peer_gossip_orgleader: false
+            core_peer_gossip_useleaderelection: true
+            core_peer_id: peer0-org1
+            core_peer_listenaddress: 0.0.0.0:7051
+            core_peer_mspconfigpath: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/
+            core_admin_mspconfigpath: /fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+            core_peer_localmspid: Org1MSP
+            core_peer_profile_enabled: true
+            core_peer_tls_cert_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.crt
+            core_peer_tls_enabled: true
+            core_peer_tls_key_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.key
+            core_peer_tls_rootcert_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+
+        peer1org1:
+            service_name: peer1-org1
+
+            service_port: 8051
+            operation_port: 9496
+
+            core_peer_addressautodetect: true
+            core_peer_org_name: org1
+            core_peer_address: peer1-org1:8051
+            core_peer_dns_name: ext-chaincode-org1
+            core_peer_port_number: 20002
+            core_peer_ca_admin_user: admin
+            core_peer_ca_admin_secret: adminpw
+            core_peer_ca_url: ca-org1
+            core_peer_ca_port: 20055
+            core_peer_gossip_bootstrap: peer0-org1:7051
+            core_peer_gossip_externalendpoint: peer1-org1:8051
+            core_peer_gossip_orgleader: false
+            core_peer_gossip_useleaderelection: true
+            core_peer_id: peer1-org1
+            core_peer_listenaddress:  0.0.0.0:8051
+            core_peer_mspconfigpath: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/msp/
+            core_admin_mspconfigpath: /fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+            core_peer_localmspid: Org1MSP
+            core_peer_profile_enabled: true
+            core_peer_tls_cert_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls/server.crt
+            core_peer_tls_enabled: true
+            core_peer_tls_key_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls/server.key
+            core_peer_tls_rootcert_file: /fabric/organizations/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls/ca.crt
+
+        ###############
+        # ORG 2
+        ###############
+        peer0org2:
+            service_name: peer0-org2
+
+            service_port: 9051
+            operation_port: 9526
+
+            core_peer_addressautodetect: true
+            core_peer_org_name: org2
+            core_peer_address: peer0-org2:9051
+            core_peer_dns_name: ext-chaincode-org2
+            core_peer_port_number: 20002
+            core_peer_ca_admin_user: admin
+            core_peer_ca_admin_secret: adminpw
+            core_peer_ca_url: ca-org2
+            core_peer_ca_port: 20065
+            core_peer_gossip_bootstrap: peer1-org2:10051
+            core_peer_gossip_externalendpoint: peer0-org2:9051
+            core_peer_gossip_orgleader: false
+            core_peer_gossip_useleaderelection: true
+            core_peer_id: peer0-org2
+            core_peer_listenaddress:  0.0.0.0:9051
+            core_peer_mspconfigpath: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp/
+            core_admin_mspconfigpath: /fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+            core_peer_localmspid: Org2MSP
+            core_peer_profile_enabled: true
+            core_peer_tls_cert_file: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/server.crt
+            core_peer_tls_enabled: true
+            core_peer_tls_key_file: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/server.key
+            core_peer_tls_rootcert_file: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+
+        peer1org2:
+            service_name: peer1-org2
+
+            service_port: 10051
+            operation_port: 9536
+
+            core_peer_addressautodetect: true
+            core_peer_org_name: org2
+            core_peer_address: peer1-org2:10051
+            core_peer_dns_name: ext-chaincode-org2
+            core_peer_port_number: 20002
+            core_peer_ca_admin_user: admin
+            core_peer_ca_admin_secret: adminpw
+            core_peer_ca_url: ca-org2
+            core_peer_ca_port: 20065
+            core_peer_gossip_bootstrap: peer0-org2:9051
+            core_peer_gossip_externalendpoint: peer1-org2:10051
+            core_peer_gossip_orgleader: false
+            core_peer_gossip_useleaderelection: true
+            core_peer_id: peer1-org2
+            core_peer_listenaddress: 0.0.0.0:10051
+            core_peer_mspconfigpath: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/msp/
+            core_admin_mspconfigpath: /fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+            core_peer_localmspid: Org2MSP
+            core_peer_profile_enabled: true
+            core_peer_tls_cert_file: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/server.crt
+            core_peer_tls_enabled: true
+            core_peer_tls_key_file: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/server.key
+            core_peer_tls_rootcert_file: /fabric/organizations/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/ca.crt
